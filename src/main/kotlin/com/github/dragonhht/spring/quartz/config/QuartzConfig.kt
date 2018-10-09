@@ -1,8 +1,6 @@
 package com.github.dragonhht.spring.quartz.config
 
 import com.github.dragonhht.spring.quartz.quartz.MyJob
-import org.quartz.CronTrigger
-import org.quartz.JobDetail
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Lazy

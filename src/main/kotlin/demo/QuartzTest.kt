@@ -1,14 +1,9 @@
 package demo
 
-import org.quartz.Scheduler
-import org.quartz.SchedulerException
-import org.quartz.impl.StdSchedulerFactory
-import org.quartz.JobBuilder.*
-import org.quartz.TriggerBuilder.*
-import org.quartz.SimpleScheduleBuilder.*
+import org.quartz.JobBuilder.newJob
 import org.quartz.SimpleScheduleBuilder.simpleSchedule
-import org.quartz.JobDetail
-
+import org.quartz.TriggerBuilder.newTrigger
+import org.quartz.impl.StdSchedulerFactory
 
 
 /**
@@ -20,10 +15,10 @@ fun main(args: Array<String>) {
     var scheduler = StdSchedulerFactory.getDefaultScheduler()
 
     scheduler.start()
-
     // define the job and tie it to our HelloJob class
     val job = newJob(HelloJob::class.java)
             .withIdentity("job1", "group1")
+            .usingJobData("index", 0)
             .build()
 
     // Trigger the job to run now, and then repeat every 40 seconds
@@ -31,7 +26,7 @@ fun main(args: Array<String>) {
             .withIdentity("trigger1", "group1")
             .startNow()
             .withSchedule(simpleSchedule()
-                    .withIntervalInSeconds(40)
+                    .withIntervalInMilliseconds(1000)
                     .repeatForever())
             .build()
 
