@@ -169,4 +169,98 @@ fun main(args: Array<String>) {
     }
     ```
 
+## Quartz中重要的几个监听器
+
+-   `JobListener`: 任务调度中，与任务Job相关的监听器
+
+    -   定义JobListener(通过实现JobListener接口)
     
+    ```kotlin
+    class MyJobListener : JobListener {
+        override fun getName(): String? {
+            println("JobListener getName")
+            return this.javaClass.name
+        }
+    
+        override fun jobToBeExecuted(context: JobExecutionContext?) {
+            println("${context!!.jobDetail.key.name} : 在Job将要被执行时执行")
+        }
+    
+        override fun jobWasExecuted(context: JobExecutionContext?, jobException: JobExecutionException?) {
+            println("${context!!.jobDetail.key.name} : 在Job被执行后执行")
+        }
+    
+        override fun jobExecutionVetoed(context: JobExecutionContext?) {
+            println("${context!!.jobDetail.key.name} : 在Job将要被执行时执行， 但又被TriggerListener否决时调用")
+        }
+    
+    }
+    ```
+    
+    -   将JobListener与任务调度关联
+    
+        -   定义全局JobListener
+        
+        ```
+        scheduler.scheduleJob(job, trigger)
+        // 定义全局JobListener
+        scheduler.listenerManager.addJobListener(MyJobListener(), EverythingMatcher.allJobs())
+        ```
+        
+        -   定义局部JobListener
+
+        ```
+        scheduler.scheduleJob(job, trigger)
+        // 将JobListener与指定的任务Job相关联
+        scheduler.listenerManager.addJobListener(MyJobListener(), KeyMatcher.keyEquals(JobKey.jobKey("job1", "group1")))
+        ```
+        
+-   `TriggerListener`: 用于监听与Trigger相关的事件
+
+    -   定义TriggerListener(实现TriggerListener接口)
+    
+    ```kotlin
+    class MyTriggerListener : TriggerListener {
+        override fun triggerFired(trigger: Trigger?, context: JobExecutionContext?) {
+            println("相关联的Trigger被触发，Job的execute将被执行时触发")
+        }
+    
+        override fun getName(): String {
+            println("MyTriggerListener : getName")
+            return this::class.java.simpleName
+        }
+    
+        override fun vetoJobExecution(trigger: Trigger?, context: JobExecutionContext?): Boolean {
+            println("相关联的Trigger被触发，Job将被调用时，Scheduler调用该方法，可否决Job的执行，若返回true则该Job不会因此次Trigger触发而执行")
+            return false
+        }
+    
+        override fun triggerComplete(trigger: Trigger?, context: JobExecutionContext?, triggerInstructionCode: Trigger.CompletedExecutionInstruction?) {
+            println("相关联的Trigger被触发,并且完成Job调用时执行")
+        }
+    
+        override fun triggerMisfired(trigger: Trigger?) {
+            println("当Trigger错过触发时调用")
+        }
+    }
+    ```
+    
+    -   将TriggerListener与任务调度关联
+    
+        -   定义全局TriggerListener
+        
+        ```
+        // 定义全局TriggerListener
+        scheduler.listenerManager.addTriggerListener(MyTriggerListener(), EverythingMatcher.allTriggers())
+        ```
+        
+        -   定义局部TriggerListener
+        
+        ```
+        // 将riggerListener与指定的Trigger关联
+        scheduler.listenerManager.addTriggerListener(MyTriggerListener(), KeyMatcher.keyEquals(TriggerKey.triggerKey("trigger1", "group1")))
+        ```
+     
+-   `SchedulerListener`: 在Scheduler生命周期中的关键事件发生时调用
+
+   

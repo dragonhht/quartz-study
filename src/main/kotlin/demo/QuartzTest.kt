@@ -1,10 +1,16 @@
 package demo
 
+import demo.listener.MyJobListener
+import demo.listener.MyTriggerListener
 import org.quartz.DateBuilder
 import org.quartz.JobBuilder.newJob
+import org.quartz.JobKey
 import org.quartz.SimpleScheduleBuilder.simpleSchedule
 import org.quartz.TriggerBuilder.newTrigger
+import org.quartz.TriggerKey
 import org.quartz.impl.StdSchedulerFactory
+import org.quartz.impl.matchers.EverythingMatcher
+import org.quartz.impl.matchers.KeyMatcher
 
 
 /**
@@ -33,6 +39,15 @@ fun main(args: Array<String>) {
 
     // Tell quartz to schedule the job using our trigger
     scheduler.scheduleJob(job, trigger)
+    // 定义全局JobListener
+    //scheduler.listenerManager.addJobListener(MyJobListener(), EverythingMatcher.allJobs())
+    // 定义全局TriggerListener
+    //scheduler.listenerManager.addTriggerListener(MyTriggerListener(), EverythingMatcher.allTriggers())
+    // 将JobListener与指定的任务Job相关联
+    scheduler.listenerManager.addJobListener(MyJobListener(), KeyMatcher.keyEquals(JobKey.jobKey("job1", "group1")))
+    // 将riggerListener与指定的Trigger关联
+    scheduler.listenerManager.addTriggerListener(MyTriggerListener(), KeyMatcher.keyEquals(TriggerKey.triggerKey("trigger1", "group1")))
+
     //Thread.sleep(6000)
     //scheduler.shutdown()
 }
