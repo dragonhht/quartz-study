@@ -90,6 +90,47 @@ fun main(args: Array<String>) {
     }
     ```
 
+-   `Trigger`: 任务的触发器，在此处只介绍常用的两种触发器
+
+    -   `SimpleTrigger`: 它只能用于指定任务在一个特定时间内运行,可指定任务的重复(时间,次数)与间隔(时间,次数), 示例如下(简单介绍，具体请查看API)
+    
+        -   立即运行并每1秒运行一次，直到程序结束
+        
+        ```kotlin
+        val trigger = newTrigger()
+                    .withIdentity("trigger1", "group1")
+                    .startNow()
+                    .withSchedule(simpleSchedule()
+                            .withIntervalInSeconds(1)
+                            .repeatForever())
+                    .build()
+        ``` 
+        
+        -   立即运行任务并每1秒运行一次，总共运行3次
+        
+        ```kotlin
+        val trigger = newTrigger()
+                    .withIdentity("trigger1", "group1")
+                    .startNow()
+                    .withSchedule(simpleSchedule()
+                            .withIntervalInSeconds(1)
+                            .withRepeatCount(2))
+                    .build()
+        ```
+
+    -   `CronTrigger`: 该触发器可通过cron表达式来定义触发任务(不了解cron表达式的可百度，此处不做介绍)
+    
+        -   每秒执行一次任务
+        
+        ```kotlin
+        val trigger = newTrigger()
+                    .withIdentity("trigger1", "group1")
+                    .startNow()
+                    .withSchedule(CronScheduleBuilder.cronSchedule("0/1 * * * * ?"))
+                    .build()
+        ```
+        
+
 ## 有状态的Job与无状态的Job
 
 > 在Quartz中，Job可能会持有某些状态信息，例如在Job中的index属性用于计算任务的调用次数，这些信息将被存储在JobDataMap，这时候便就是`有状态Job`  

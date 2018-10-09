@@ -1,5 +1,6 @@
 package demo
 
+import org.quartz.DateBuilder
 import org.quartz.JobBuilder.newJob
 import org.quartz.SimpleScheduleBuilder.simpleSchedule
 import org.quartz.TriggerBuilder.newTrigger
@@ -26,12 +27,12 @@ fun main(args: Array<String>) {
             .withIdentity("trigger1", "group1")
             .startNow()
             .withSchedule(simpleSchedule()
-                    .withIntervalInMilliseconds(1000)
-                    .repeatForever())
+                    .withIntervalInSeconds(1)
+                    .withRepeatCount(2))
             .build()
 
     // Tell quartz to schedule the job using our trigger
     scheduler.scheduleJob(job, trigger)
-    Thread.sleep(6000)
-    scheduler.shutdown()
+    //Thread.sleep(6000)
+    //scheduler.shutdown()
 }
