@@ -1,10 +1,7 @@
 package com.github.dragonhht.spring.quartz.controller
 
 import com.github.dragonhht.spring.quartz.store.job.TestJob
-import org.quartz.CronScheduleBuilder
-import org.quartz.JobBuilder
-import org.quartz.Scheduler
-import org.quartz.TriggerBuilder
+import org.quartz.*
 import org.quartz.impl.StdSchedulerFactory
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RestController
@@ -18,6 +15,10 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 class TestController {
 
+    val JOB_NAME = "test-job"
+    val TRIGGER_NAME = "test-trigger"
+    val GROUP_NAME = "group1"
+
     @GetMapping("/start")
     fun start(): Boolean {
         var scheduler = StdSchedulerFactory.getDefaultScheduler()
@@ -27,13 +28,13 @@ class TestController {
 
     @GetMapping("/create")
     fun create(): Boolean {
-        var scheduler = StdSchedulerFactory.getDefaultScheduler()
+        val scheduler = StdSchedulerFactory.getDefaultScheduler()
         scheduler.start()
-        var jobDetail = JobBuilder.newJob(TestJob::class.java)
-                .withIdentity("test-job", "group1")
+        val jobDetail = JobBuilder.newJob(TestJob::class.java)
+                .withIdentity(JOB_NAME, GROUP_NAME)
                 .build()
-        var trigger = TriggerBuilder.newTrigger()
-                .withIdentity("test-trigger", "group1")
+        val trigger = TriggerBuilder.newTrigger()
+                .withIdentity(TRIGGER_NAME, GROUP_NAME)
                 .startNow()
                 .withSchedule(CronScheduleBuilder.cronSchedule("0/2 * * * * ?"))
                 .build()
@@ -41,5 +42,25 @@ class TestController {
         return true
     }
 
+    @GetMapping("/update")
+    fun update(): Boolean {
+        val scheduler = StdSchedulerFactory.getDefaultScheduler()
+        scheduler.start()
+        val trigger = TriggerBuilder.newTrigger()
+                .withIdentity(TRIGGER_NAME, GROUP_NAME)
+                .startNow()
+                .withSchedule(CronScheduleBuilder.cronSchedule("0/5 * * * * ?"))
+                .build()
+        val date = scheduler.rescheduleJob(TriggerKey.triggerKey(TRIGGER_NAME, GROUP_NAME), trigger)
+        println(date)
+        return true
+    }
 
+//    @GetMapping("/del")
+//    fun del(): Boolean {
+//        val scheduler = StdSchedulerFactory.getDefaultScheduler()
+//        scheduler.start()
+//        scheduler.deleteJob(JobKey.jobKey(JOB_NAME))
+//        return true
+//    }
 }

@@ -201,7 +201,7 @@ fun main(args: Array<String>) {
     
         -   定义全局JobListener
         
-        ```
+        ```kotlin
         scheduler.scheduleJob(job, trigger)
         // 定义全局JobListener
         scheduler.listenerManager.addJobListener(MyJobListener(), EverythingMatcher.allJobs())
@@ -209,7 +209,7 @@ fun main(args: Array<String>) {
         
         -   定义局部JobListener
 
-        ```
+        ```kotlin
         scheduler.scheduleJob(job, trigger)
         // 将JobListener与指定的任务Job相关联
         scheduler.listenerManager.addJobListener(MyJobListener(), KeyMatcher.keyEquals(JobKey.jobKey("job1", "group1")))
@@ -249,18 +249,68 @@ fun main(args: Array<String>) {
     
         -   定义全局TriggerListener
         
-        ```
+        ```kotlin
         // 定义全局TriggerListener
         scheduler.listenerManager.addTriggerListener(MyTriggerListener(), EverythingMatcher.allTriggers())
         ```
         
         -   定义局部TriggerListener
         
-        ```
+        ```kotlin
         // 将riggerListener与指定的Trigger关联
         scheduler.listenerManager.addTriggerListener(MyTriggerListener(), KeyMatcher.keyEquals(TriggerKey.triggerKey("trigger1", "group1")))
         ```
      
 -   `SchedulerListener`: 在Scheduler生命周期中的关键事件发生时调用
 
-   
+## 使用JDBC JobStore
+
+-   在Quartz的配置文件(quartz.properties)中添加如下信息:
+
+```properties
+#JDBC JobStore
+# 使用JobStoreTX
+org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX
+org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+# 表前缀
+org.quartz.jobStore.tablePrefix = QRTZ_
+# 使用的DataSource
+org.quartz.jobStore.dataSource = myDS
+
+# 数据库配置
+# myDS为配置的DataSource名称
+org.quartz.dataSource.myDS.driver = com.mysql.jdbc.Driver
+org.quartz.dataSource.myDS.URL = jdbc:mysql://my.dragon.com:3307/quartz?characterEncoding=utf-8
+org.quartz.dataSource.myDS.user = root
+org.quartz.dataSource.myDS.password = 123
+org.quartz.dataSource.myDS.maxConnections = 5
+```
+
+-  创建运行任务
+
+```kotlin
+var scheduler = StdSchedulerFactory.getDefaultScheduler()
+// 启动scheduler
+scheduler.start()
+// 设置任务
+var jobDetail = JobBuilder.newJob(TestJob::class.java)
+        .withIdentity("test-job", "group1")
+        .build()
+var trigger = TriggerBuilder.newTrigger()
+        .withIdentity("test-trigger", "group1")
+        .startNow()
+        .withSchedule(CronScheduleBuilder.cronSchedule("0/2 * * * * ?"))
+        .build()
+// 告知Scheduler执行的任务及任务的触发器
+scheduler.scheduleJob(jobDetail, trigger)
+```
+
+-   运行数据表中已设置的任务
+
+```kotlin
+// 当启动scheduler后，任务会自动运行
+var scheduler = StdSchedulerFactory.getDefaultScheduler()
+scheduler.start()
+```
+
+-   [参考配置](https://www.w3cschool.cn/quartz_doc/quartz_doc-i7oc2d9l.html)
